@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>🎄 Kinnnnnnyua's take on Sprikleeeess</title>
+  </head>
+  <style>
+    body {
+      display: grid;
+      place-items: center;
+      background: #010;
+      margin: 0;
+      padding: 0;
+      min-height: 97vh;
+    }
+
+    :root {
+      --canvas-size: 90vmin;
+    }
+
+    #canvas {
+      width: var(--canvas-size);
+      height: var(--canvas-size);
+      display: grid;
+      grid-template-columns: repeat(var(--NUMBER), 1fr);
+      grid-template-rows: repeat(var(--NUMBER), 1fr);
+      overflow: hidden;
+    }
+
+    .sprinkle {
+      --color: inherit;
+      --trans: 0;
+      --delay: 0;
+      --state: running;
+      --anim: wiggle;
+      position: relative;
+      transition: transform 0.5s ease-out, filter 2s linear;
+      cursor: pointer;
+    }
+
+    .sprinkle:hover {
+      filter: brightness(5);
+      transform: scale(2);
+      transition: filter 0.2s linear;
+    }
+
+    .sprinkle::before {
+      content: "";
+      position: absolute;
+      width: 10%;
+      height: 100%;
+      left: 50%;
+      top: 50%;
+      background-color: var(--color);
+      transform: translate(-50%, -50%) rotate(calc(var(--trans) * 1deg));
+      animation: var(--anim) 1s infinite ease-in-out alternate;
+      animation-delay: calc(var(--delay) * -1ms);
+      animation-play-state: var(--state);
+      transition: background-color 0.5s linear;
+    }
+
+    @keyframes wiggle {
+      to {
+        transform: translate(-50%, -50%)
+          rotate(calc((var(--trans) + 90) * 1deg));
+      }
+    }
+  </style>
+  <body>
+    <div style="color:white;display: flex;justify-content: center;align-items: center;flex-direction: column; margin-bottom: 40px;">
+        <h3>
+        Welcome to the cool world of 🍦 Sprinkles
+        </h3>
+        👇 touch any see some cool wizardry 🧙 
+        <div>🎄</div>
+        <a href="https://github.com/CreamyMilk/checker-illustration">
+            <code>Show me the code </code>
+        </a>
+    </div>
+    <div id="canvas"></div>
+    <script>
+      "use strict";
+      console.clear();
+      var getProgress = function (a) {
+          var b = a.elapsed,
+            c = a.total;
+          return Math.min(b / c, 1);
+        },
+        map = function (a, b, c, d, e) {
+          return ((a - b) * (e - d)) / (c - b) + d;
+        },
+        easeOutQuint = function (a) {
+          return 1 + --a * a * a * a * a;
+        },
+        getRotation = function (c) {
+          var d = c.getPropertyValue("transform"),
+            e = d.split("(")[1].split(")")[0].split(","),
+            f = e[0],
+            a = e[1],
+            b = Math.round(Math.atan2(a, f) * (180 / Math.PI));
+          return b;
+        },
+        animate = function (a, b, c, d) {
+          var e = {
+            start: performance.now(),
+            total: c,
+          };
+          requestAnimationFrame(function c(f) {
+            e.elapsed = f - e.start;
+            var g = getProgress(e),
+              h = easeOutQuint(g),
+              i = map(h, 0, 1, a, b);
+            d(i, g), 1 > g && requestAnimationFrame(c);
+          });
+        },
+        getRandomColor = function () {
+          return colors[Math.floor(Math.random() * colors.length)];
+        },
+        canvas = document.querySelector("#canvas"),
+        NUMBER = 20,
+        ROWS = NUMBER,
+        COLS = NUMBER,
+        colors = [
+          "#B181E0",
+          "#81E0DC",
+          "#ED6969",
+          "#F7AC7D",
+          "#6B95F2",
+          "#EFDF6B",
+          "#A0D995",
+        ],
+        angles = [45, 90, 0, -45],
+        clicks = -1;
+      document.documentElement.style.setProperty("--NUMBER", NUMBER);
+      var createCanvas = function () {
+        for (var a = 0; a < COLS; a++)
+          for (var b = 0; b < ROWS; b++) {
+            var c = document.createElement("div"),
+              d = 270 * Math.random();
+            c.classList.add("sprinkle"),
+              c.style.setProperty("--color", getRandomColor()),
+              c.style.setProperty("--trans", d),
+              canvas.appendChild(c);
+          }
+      };
+      createCanvas();
+      var removeCSSAnimation = function (a) {
+          a.style.setProperty("--state", "paused"),
+            a.style.setProperty("--anim", "none");
+        },
+        revertCSSAnimation = function (a) {
+          a.style.setProperty("--anim", null),
+            a.style.setProperty("--state", "running"),
+            a.style.setProperty("--color", getRandomColor());
+        },
+        JSanimation = function (a) {
+          removeCSSAnimation(a);
+          var b = window.getComputedStyle(a, ":before"),
+            c = getRotation(b);
+          a.style.setProperty("--trans", c),
+            animate(c, angles[clicks % angles.length], 800, function (b) {
+              a.style.setProperty("--trans", b),
+                a.style.setProperty("--color", colors[clicks % colors.length]);
+            }),
+            setTimeout(function () {
+              revertCSSAnimation(a);
+            }, 2100);
+        },
+        handleClick = function (a) {
+          clicks++;
+          var b = Math.floor(a / ROWS);
+          sprinkles.forEach(function (c, d) {
+            var e = Math.floor(d / ROWS),
+              f = d % COLS;
+            (e = Math.abs(e - b)), (f = Math.abs(f - (a % COLS)));
+            var g = Math.max(e, f);
+            setTimeout(function () {
+              JSanimation(c, d);
+            }, g);
+          });
+        },
+        sprinkles = document.querySelectorAll(".sprinkle");
+      sprinkles.forEach(function (a, b) {
+        a.style.setProperty("--delay", -2e3 * Math.random()),
+          a.addEventListener("click", function () {
+            handleClick(b);
+          });
+      });
+    </script>
+  </body>
+</html>
